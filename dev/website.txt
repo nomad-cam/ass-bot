@@ -1,1 +1,5 @@
 http://code.google.com/p/quickanddirty/source/browse/trunk/jpiimaestro/driver/
+http://www.phidgets.com/downloads/libraries/libphidget.tar.gz
+
+deb http://www.phidgets.com/debian wheezy main
+deb-src http://www.phidgets.com/debian wheezy main

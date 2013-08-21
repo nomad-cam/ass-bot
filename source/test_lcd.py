@@ -15,7 +15,7 @@ while True:
     wlan10 = commands.getoutput("ifconfig wlan10 | grep 'inet ' | awk '{ print $2 }'")
     print wlan10
     print eth0
-    msg = {'message': eth0, 'line': '1', 'delay': '10'}
+    msg = {'message': eth0, 'line': '1', 'delay': '5'}
     
     print "sending message"
     zmq_socket.send_json(msg)

@@ -72,38 +72,35 @@ except PhidgetException as e:
 textLCD.setBacklight(True)
 textLCD.setBrightness(128)
 
-print "lcd setup complete, ready for use"
+print("lcd setup complete, ready for use")
 
 context = zmq.Context()
 lcd_receiver = context.socket(zmq.PULL)
 #lcd_receiver.bind("ipc://lcd.ipc")
-lcd_receiver.connect("ipc://lcd.ipc")
-print "PULL socket complete on ipc://lcd.ipc"
+lcd_receiver.connect("ipc:///home/odroid/GitHub/ass-bot/source/lcd.ipc")
+print("PULL socket complete on ipc://lcd.ipc")
 #message = {}
 
 #The MEAT goes here...
 #result = lcd_receiver.recv_json()
 
 while True:
-    print "going into forever loop mode"
+    print("going into forever loop mode")
     result = lcd_receiver.recv_json()
-    print result
-    print result['message'],result['line'],result['delay']
+    print(result)
+    #print result['message'],result['line'],result['delay']
+
 
     try:
-        textLCD.setScreenIndex(int(result['line']))
-        textLCD.setDisplayString(0,str(result['message']))
-        sleep(int(result['delay']))
-        #print("Writing to first row....")
-        #textLCD.setDisplayString(0, "Initialising...")
-        #sleep(2)
+        #clear the specified line...
+        textLCD.setDisplayString(int(result['line']),"")
+        #print the required text...
+        textLCD.setDisplayString(int(result['line']),str(result['message']))
+        
+        if 'delay' in result:
+            print("Waiting for Delay...")
+            sleep(int(result['delay']))
 
-        #textLCD.setBacklight(True)
-        #textLCD.setBrightness(128)
-
-        #print("Writing to second row....")
-        #textLCD.setDisplayString(1, "Complete!")
-        #sleep(2)
 
     except PhidgetException as e:
         print("Phidget Exception %i: %s" % (e.code, e.details))
@@ -117,9 +114,9 @@ while True:
 
 #print("Closing...")
 
-#textLCD.setDisplayString(0, "")
-#textLCD.setDisplayString(1, "")
-#textLCD.setBacklight(False)
+textLCD.setDisplayString(0, "")
+textLCD.setDisplayString(1, "")
+textLCD.setBacklight(False)
 
 #try:
 #    textLCD.closePhidget()

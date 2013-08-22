@@ -15,32 +15,36 @@ import time
 
 context = zmq.Context()
 zmq_socket = context.socket(zmq.PUSH)
-zmq_socket.bind("ipc:///home/odroid/GitHub/ass-bot/source/lcd.ipc")
+zmq_socket.bind("ipc:///tmp/lcd.ipc")
 
 
-def send_cat_msg(message, static, units=""):
+def send_cat_msg(message, static, units='', line='1'):
     #msg = static.join(message)
     premsg = "%s: %s%s" % (static, message, units)
     #print( premsg )
-    msg = {'message': premsg, 'line': '1'}
+    msg = {'message': premsg, 'line': line}
     zmq_socket.send_json(msg)
     time.sleep(3)
 
 
 while True:
 
+    #WLAN ip address
+    wlan_ip = commands.getoutput("ip -f inet addr | grep wlan | tail -n 1 | awk '{print $2}' | cut -d '/' -f1")
+    send_cat_msg(message=wlan_ip, static="wlan", line='0')
+
     #Memory
     memfree = commands.getoutput("cat /proc/meminfo | grep 'MemFree:' | awk '{ print $2 }'")
-    send_cat_msg(str(memfree),"mfree")
-    memtotal =  commands.getoutput("cat /proc/meminfo | grep 'MemFree:' | awk '{ print $2 }'")
-    send_cat_msg(str(memtotal),"mtotal")
+    send_cat_msg(str(memfree), "mfree", "KiB")
+    memtotal =  commands.getoutput("cat /proc/meminfo | grep 'MemTotal:' | awk '{ print $2 }'")
+    send_cat_msg(str(memtotal), "mtotal", "KiB")
 
     #System Load
-    load1m = commands.getoutput(" w | grep 'load average' | awk '{print $(NF-2)}' ")
+    load1m = commands.getoutput(" w | grep 'load average' | awk '{print $(NF-2)}' | cut -d ',' -f1")
     send_cat_msg(str(load1m),"load1m")
-    load5m = commands.getoutput(" w | grep 'load average' | awk '{print $(NF-1)}' ")
+    load5m = commands.getoutput(" w | grep 'load average' | awk '{print $(NF-1)}' | cut -d ',' -f1")
     send_cat_msg(str(load5m),"load5m")
-    load15m = commands.getoutput(" w | grep 'load average' | awk '{print $(NF)}' ")
+    load15m = commands.getoutput(" w | grep 'load average' | awk '{print $(NF)}' | cut -d ',' -f1 ")
     send_cat_msg(str(load15m),"load15m")
 
     #Core utilisation
@@ -54,6 +58,10 @@ while True:
     send_cat_msg(str(core2usr),"core2usr","%")
     core3usr = commands.getoutput(" mpstat -P 3 | tail -n 1 | awk '{print $4}' ")
     send_cat_msg(str(core3usr),"core3usr","%")
+
+    #ETH0 ip address
+    eth0_ip = commands.getoutput("ip -f inet addr | grep eth0 | tail -n 1 | awk '{print $2}' | cut -d '/' -f1")
+    send_cat_msg(message=eth0_ip, static="eth0", line='0')
 
     #Core idle times
     coreidle = commands.getoutput(" mpstat | tail -n 1 | awk '{print $12}' ")
@@ -69,7 +77,7 @@ while True:
 
     #Wifi link data
     #wifi_essid = commands.getoutput("")
-    wifi_wlan = commands.getoutput("cat /proc/net/wireless | tail -n 1 | awk '{print $1}' ")
+    wifi_wlan = commands.getoutput("cat /proc/net/wireless | tail -n 1 | awk '{print $1}' | cut -d ':' -f1")
     send_cat_msg(str(wifi_wlan),"device")
     wifi_link = commands.getoutput("cat /proc/net/wireless | tail -n 1 | awk '{print $3}' ")
     send_cat_msg(str(wifi_link),"link","0%")

@@ -2,6 +2,12 @@
 
 """ srv_motors.py: Receive commands to control 2 phidgets motors"""
 
+""" Usage:  create a zmq push socket to send a serialised dictionary
+            through ipc:///tmp/motors.ipc 
+            The message should be of the form:
+            msg = {'leftA': '<int>', 'rightA': '<int>', 'leftV': '<int>', 'rightV': '<int>', ['rel': 'true'] }
+"""
+
 """
 Borrowed and modified from the phidgets example code by Adam Stelmack
 http://creativecommons.org/licenses/by/2.5/ca/

@@ -64,15 +64,15 @@ while True:
     send_cat_msg(message=eth0_ip, static="eth0", line='0')
 
     #Core idle times
-    coreidle = commands.getoutput(" mpstat | tail -n 1 | awk '{print $12}' ")
+    coreidle = commands.getoutput(" mpstat | tail -n 1 | awk '{print $NF}' ")
     send_cat_msg(str(coreidle),"coreidle","%")
-    core0idle = commands.getoutput(" mpstat -P 0 | tail -n 1 | awk '{print $12}' ")
+    core0idle = commands.getoutput(" mpstat -P 0 | tail -n 1 | awk '{print $NF}' ")
     send_cat_msg(str(core0idle),"core0idle","%")
-    core1idle = commands.getoutput(" mpstat -P 1| tail -n 1 | awk '{print $12}' ")
+    core1idle = commands.getoutput(" mpstat -P 1| tail -n 1 | awk '{print $NF}' ")
     send_cat_msg(str(core1idle),"core1idle","%")
-    core2idle = commands.getoutput(" mpstat -P 2| tail -n 1 | awk '{print $12}' ")
+    core2idle = commands.getoutput(" mpstat -P 2| tail -n 1 | awk '{print $NF}' ")
     send_cat_msg(str(core2idle),"core2idle","%")
-    core3idle = commands.getoutput(" mpstat -P 3| tail -n 1 | awk '{print $12}' ")
+    core3idle = commands.getoutput(" mpstat -P 3| tail -n 1 | awk '{print $NF}' ")
     send_cat_msg(str(core3idle),"core3idle","%")
 
     #Wifi link data

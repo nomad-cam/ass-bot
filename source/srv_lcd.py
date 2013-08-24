@@ -77,7 +77,7 @@ print("lcd setup complete, ready for use")
 context = zmq.Context()
 lcd_receiver = context.socket(zmq.PULL)
 #lcd_receiver.bind("ipc://lcd.ipc")
-lcd_receiver.connect("ipc:///tmp/lcd.ipc")
+lcd_receiver.bind("ipc:///tmp/lcd.ipc")
 print("PULL socket complete on ipc://lcd.ipc")
 #message = {}
 

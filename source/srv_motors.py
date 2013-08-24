@@ -129,8 +129,9 @@ else:
 #print(motorControlL.getAccelerationMax(0))
 #print(motorControlR.getAccelerationMax(0))
 
-print("Press Enter to continue....")
-chr = sys.stdin.read(1)
+#no good for automation scripts...
+#print("Press Enter to continue....")
+#chr = sys.stdin.read(1)
 
 context = zmq.Context()
 motors_receiver = context.socket(zmq.PULL)

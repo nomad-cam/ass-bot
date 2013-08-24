@@ -13,3 +13,4 @@ Requirements
 3. pyzmq  13.1.0
 4. libphidget LATEST
 5. libusb 1.0-0
+6. mjpg-streamer experimental

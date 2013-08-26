@@ -17,6 +17,7 @@ from ctypes import *
 import sys
 from time import sleep
 import zmq
+
 #Phidget specific imports
 from Phidgets.Phidget import PhidgetID
 from Phidgets.PhidgetException import PhidgetErrorCodes, PhidgetException

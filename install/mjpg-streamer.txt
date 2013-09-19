@@ -1,0 +1,13 @@
+How to install mjpg-streamer:
+
+Followed forum guide... 
+http://www.raspberrypi.org/phpBB3/viewtopic.php?t=8659
+
+1. apt-get install subversion lib4vl-dev libjpeg8-dev imagemagick
+2. svn checkout svn://svn.code.sf.net/p/mjpg-streamer/code/ mjpg-streamer-code
+3. cd mjpg-streamer/mjpg-streamer-experimental
+4. make USE_LIBV4L2=true clean all
+5. make DESTDIR=/usr install
+
+6. test...
+sudo mjpg_streamer -i "input_uvc.so -d /dev/video6 -r 640x480 -f 1" -o "output_http.so -p 8090 -w /usr/www"

@@ -1,6 +1,12 @@
 #!/usr/bin/env python
 #
 
+"""
+Borrowed and modified from the phidgets example code by Adam Stelmack
+http://creativecommons.org/licenses/by/2.5/ca/
+"""
+
+
 import time
 import sys
 import zmq
@@ -153,10 +159,17 @@ if not interfaceKitHUB.getRatiometric:
     interfaceKitHUB.setRatiometric(True)
 
 
+context = zmq.Context()
+distance_socket = context.socket(zmq.PUB)
+distance_socket.bind("ipc:///tmp/distance.ipc")
+
+array = ['ne','e','se','nw','w','sw','front','rear']
+
 #print out the array distance...
 #seems to be accurate to around +/-2mm
 
 while True:
+    message = []
 
     for i in range(interfaceKitHUB.getSensorCount()):
         try:
@@ -179,6 +192,7 @@ while True:
                     distance_mm = -1
                 interfaceKitHUB.setOutputState(i,False)
                 sleep(0.4)
+                message.append(distance_mm)
             else:
                 #IR range 20cm - 150cm (2.5V - 0.4V)
                 intval = interfaceKitHUB.getSensorRawValue(i)
@@ -188,6 +202,7 @@ while True:
                 if (distance_mm < 200.0) or (distance_mm > 1500.0):
                     distance_mm = -1
                 sleep(0.5)
+                message.append(distance_mm)
 
             print( "Distance - Device %i: %smm" % ( i, distance_mm ) )
             #print( distance_mm )
@@ -195,6 +210,10 @@ while True:
             print("Phidget Exception %i: %s" % (e.code, e.details))
     print("==============================")
     sleep(1)
+
+    #msg = {'front': '32.543'}
+    msg = dict(zip(array,message))
+    distance_socket.send_json(msg)
 
 #print "Sensor ValueHUB",interfaceKitHUB.getSensorValue(0)
 #print "Sensor ValueLCD",interfaceKitLCD.getSensorValue(0)

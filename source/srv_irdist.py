@@ -7,6 +7,7 @@ import zmq
 
 #Basic imports
 from ctypes import *
+from time import sleep
 #import sys
 import random
 #Phidget specific imports
@@ -57,7 +58,27 @@ def interfaceKitInputChanged(e):
 
 def interfaceKitSensorChanged(e):
     source = e.device
-    print("InterfaceKit %i: Sensor %i: %i" % (source.getSerialNum(), e.index, e.value))
+#    print e.rawValue
+    try:
+        if e.index >= 6:
+            #Sonar sensor range 0cm - 645cm
+            #Plugged into analog input 6 & 7 for N (forward) and S (reverse)
+            distance_mm = e.value * 12.96
+            if distance_mm > 6450.0:
+                distance_mm = "NaN"
+
+        else:
+            #IR range 20cm - 150cm
+            distance_mm = (9462/(e.value - 16.92)) * 10
+            #Not a reliable mesaurement below 200mm (20cm) or above 1500 (150cm)
+            if (distance_mm < 200.0) or (distance_mm > 1500.0):
+                distance_mm = "NaN"
+
+        print( "Distance - Device %i: %smm" % ( e.index, distance_mm ) )
+    except PhidgetException as e:
+        print("Phidget Exception %i: %s" % (e.code, e.details))
+
+#    print("InterfaceKit %i: Sensor %i: %i" % (source.getSerialNum(), e.index, e.value))
 
 def interfaceKitOutputChanged(e):
     source = e.device
@@ -65,19 +86,19 @@ def interfaceKitOutputChanged(e):
 
 #Main Program Code
 try:
-    interfaceKitHUB.setOnAttachHandler(interfaceKitAttached)
-    interfaceKitHUB.setOnDetachHandler(interfaceKitDetached)
+#    interfaceKitHUB.setOnAttachHandler(interfaceKitAttached)
+#    interfaceKitHUB.setOnDetachHandler(interfaceKitDetached)
     interfaceKitHUB.setOnErrorhandler(interfaceKitError)
-    interfaceKitHUB.setOnInputChangeHandler(interfaceKitInputChanged)
-    interfaceKitHUB.setOnOutputChangeHandler(interfaceKitOutputChanged)
-    interfaceKitHUB.setOnSensorChangeHandler(interfaceKitSensorChanged)
+#    interfaceKitHUB.setOnInputChangeHandler(interfaceKitInputChanged)
+#    interfaceKitHUB.setOnOutputChangeHandler(interfaceKitOutputChanged)
+#    interfaceKitHUB.setOnSensorChangeHandler(interfaceKitSensorChanged)
 
-    interfaceKitLCD.setOnAttachHandler(interfaceKitAttached)
-    interfaceKitLCD.setOnDetachHandler(interfaceKitDetached)
+#    interfaceKitLCD.setOnAttachHandler(interfaceKitAttached)
+#    interfaceKitLCD.setOnDetachHandler(interfaceKitDetached)
     interfaceKitLCD.setOnErrorhandler(interfaceKitError)
-    interfaceKitLCD.setOnInputChangeHandler(interfaceKitInputChanged)
-    interfaceKitLCD.setOnOutputChangeHandler(interfaceKitOutputChanged)
-    interfaceKitLCD.setOnSensorChangeHandler(interfaceKitSensorChanged)
+#    interfaceKitLCD.setOnInputChangeHandler(interfaceKitInputChanged)
+#    interfaceKitLCD.setOnOutputChangeHandler(interfaceKitOutputChanged)
+#    interfaceKitLCD.setOnSensorChangeHandler(interfaceKitSensorChanged)
 
 except PhidgetException as e:
     print("Phidget Exception %i: %s" % (e.code, e.details))
@@ -118,34 +139,67 @@ except PhidgetException as e:
 else:
     displayDeviceInfo()
 
-print("Setting the data rate for each sensor index to 4ms....")
+#print("Setting the data rate for each sensor index to 4ms....")
 for i in range(interfaceKitHUB.getSensorCount()):
     try:
-
-        interfaceKitHUB.setDataRate(i, 4)
+        interfaceKitHUB.setDataRate(i, 2)
     except PhidgetException as e:
         print("Phidget Exception %i: %s" % (e.code, e.details))
 
 print "\n"
+
+#Make sure the ratiometric setting is set (required by sonar)
+if not interfaceKitHUB.getRatiometric:
+    interfaceKitHUB.setRatiometric(True)
+
+
 #print out the array distance...
 #seems to be accurate to around +/-2mm
-for i in range(interfaceKitHUB.getSensorCount()):
-    try:
-        intval = interfaceKitHUB.getSensorValue(i)
-        if not intval:
-            continue
-        distance_mm = (9462/(intval - 16.92)) * 10
 
-        #Not a reliable mesaurement below 200mm (20cm) or above 1500 (150cm)
-        if (distance_mm < 200.0) or (distance_mm > 1500.0):
-            distance_mm = "NaN"
+while True:
 
-        print( distance_mm )
-    except PhidgetException as e:
-        print("Phidget Exception %i: %s" % (e.code, e.details))
+    for i in range(interfaceKitHUB.getSensorCount()):
+        try:
+            #intval = interfaceKitHUB.getSensorValue(i)
+            #if 0 reading, don't try and convert
+            #if not intval:
+            #    continue
 
-print "Sensor ValueHUB",interfaceKitHUB.getSensorValue(0)
-print "Sensor ValueLCD",interfaceKitLCD.getSensorValue(0)
+            if i >= 6:
+                #Sonar sensor range 0cm - 645cm
+                #Plugged into analog input 6 & 7 for N (forward) and S (reverse)
+                #for j in range(6,7):
+                interfaceKitHUB.setOutputState(i,True)
+                #intval = interfaceKitHUB.getSensorValue(i)
+                sleep(0.1)
+                intval = interfaceKitHUB.getSensorRawValue(i)
+                print intval, i
+                distance_mm = (intval / 4.095 ) * 12.96
+                if distance_mm > 6450.0:
+                    distance_mm = -1
+                interfaceKitHUB.setOutputState(i,False)
+                sleep(0.4)
+            else:
+                #IR range 20cm - 150cm (2.5V - 0.4V)
+                intval = interfaceKitHUB.getSensorRawValue(i)
+                print intval
+                distance_mm = (9462/((intval / 4.095) - 16.92)) * 10
+                #Not a reliable mesaurement below 200mm (20cm) or above 1500 (150cm)
+                if (distance_mm < 200.0) or (distance_mm > 1500.0):
+                    distance_mm = -1
+                sleep(0.5)
+
+            print( "Distance - Device %i: %smm" % ( i, distance_mm ) )
+            #print( distance_mm )
+        except PhidgetException as e:
+            print("Phidget Exception %i: %s" % (e.code, e.details))
+    print("==============================")
+    sleep(1)
+
+#print "Sensor ValueHUB",interfaceKitHUB.getSensorValue(0)
+#print "Sensor ValueLCD",interfaceKitLCD.getSensorValue(0)
+
+#print interfaceKitHUB.getRatiometric()
 
 print("Press Enter to quit....")
 

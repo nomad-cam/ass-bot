@@ -161,6 +161,7 @@ if not interfaceKitHUB.getRatiometric:
 
 context = zmq.Context()
 distance_socket = context.socket(zmq.PUB)
+distance_socket.setsockopt(zmq.LINGER, 1000)
 distance_socket.bind("ipc:///tmp/distance.ipc")
 
 array = ['ne','e','se','nw','w','sw','front','rear']
